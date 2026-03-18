@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Drop | Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #050505; color: white; }
+    </style>
+</head>
+<body class="p-8">
+    <div class="max-w-6xl mx-auto space-y-12">
+        <header class="flex justify-between items-end">
+            <div class="space-y-2">
+                <h1 class="text-4xl font-black tracking-tighter">ADMIN COMMAND</h1>
+                <p class="text-white/40 text-sm font-mono uppercase tracking-widest">Platform Overview</p>
+            </div>
+            <div id="stats" class="flex gap-8">
+                <!-- Stats injected here -->
+            </div>
+        </header>
+
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 space-y-6">
+                <h2 class="text-xs font-mono text-white/40 uppercase tracking-[0.3em]">Active Drops</h2>
+                <div id="drops-list" class="space-y-4">
+                    <!-- Drops injected here -->
+                </div>
+            </div>
+            <div class="space-y-6">
+                <h2 class="text-xs font-mono text-white/40 uppercase tracking-[0.3em]">Broadcast</h2>
+                <div class="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4">
+                    <textarea id="broadcast-msg" class="w-full bg-black border border-white/10 rounded-xl p-4 text-sm focus:border-orange-500 outline-none" placeholder="Message to all users..."></textarea>
+                    <button onclick="broadcast()" class="w-full py-3 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 transition-all">Send Alert</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        async function loadData() {
+            const statsRes = await fetch('/api/admin/stats');
+            const stats = await statsRes.json();
+            
+            document.getElementById('stats').innerHTML = `
+                <div class="text-right">
+                    <div class="text-[10px] text-white/40 uppercase">Revenue</div>
+                    <div class="text-2xl font-bold text-green-400">$${stats.totalRevenue.toLocaleString()}</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-[10px] text-white/40 uppercase">Users</div>
+                    <div class="text-2xl font-bold">${stats.totalUsers.toLocaleString()}</div>
+                </div>
+            `;
+
+            const dropsRes = await fetch('/api/admin/drops');
+            const drops = await dropsRes.json();
+            
+            document.getElementById('drops-list').innerHTML = drops.map(drop => `
+                <div class="p-6 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center font-bold text-xs uppercase">${drop.type}</div>
+                        <div>
+                            <div class="font-bold">${drop.title}</div>
+                            <div class="text-[10px] text-white/40 uppercase">${drop.status}</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-6">
+                        <div class="text-right">
+                            <div class="text-[10px] text-white/40 uppercase">Sold</div>
+                            <div class="font-mono">${drop.progress}%</div>
+                        </div>
+                        <button class="px-4 py-2 bg-white text-black text-xs font-bold rounded-lg uppercase">Manage</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function broadcast() {
+            const msg = document.getElementById('broadcast-msg').value;
+            if (!msg) return;
+            alert('Broadcasting: ' + msg);
+            document.getElementById('broadcast-msg').value = '';
+        }
+
+        loadData();
+    </script>
+</body>
+</html>
